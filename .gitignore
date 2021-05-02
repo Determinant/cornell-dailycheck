@@ -1,0 +1,4 @@
+/.secret
+/.username
+/node_modules
+/package-lock.json
