@@ -119,21 +119,23 @@ async function dailyCheckStatus(cookieJar) {
     const isGreen = dom.window.document.querySelector(".status_green");
     if (!isGreen) {
     }
-    return isGreen ? isGreen.textContent : "Not checked-in. Use `--chekcin` to check in.";
+    return isGreen ? isGreen.textContent : "Not checked-in. Use `--checkin` to check in.";
 }
 
 async function dailyCheck(cookieJar) {
-    let _dom = new JSDOM(await axios.get('https://dailycheck.cornell.edu/daily-checkin', {
+    let dom = new JSDOM(await axios.get('https://dailycheck.cornell.edu/daily-checkin', {
         headers: {
             'User-Agent': userAgent,
         },
         jar: cookieJar,
         withCredentials: true
     }).data);
-    let _token = _dom.window.document.querySelector("input[name=_token]");
+    let _token = dom.window.document.querySelector("input[name='_token']");
     if (!_token) {
         console.log("Already checked-in.");
         return;
+    } else {
+        console.log(`${_token} done.`);
     }
     _token = _token.value;
     console.log(_token);
