@@ -123,13 +123,13 @@ async function dailyCheckStatus(cookieJar) {
 }
 
 async function dailyCheck(cookieJar) {
-    let dom = new JSDOM(await axios.get('https://dailycheck.cornell.edu/daily-checkin', {
+    let dom = new JSDOM((await axios.get('https://dailycheck.cornell.edu/daily-checkin', {
         headers: {
             'User-Agent': userAgent,
         },
         jar: cookieJar,
         withCredentials: true
-    }).data);
+    }).catch(_ => {})).data);
     let _token = dom.window.document.querySelector("input[name='_token']");
     if (!_token) {
         console.log("Already checked-in.");
