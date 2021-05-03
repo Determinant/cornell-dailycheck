@@ -3,10 +3,12 @@
     "@types/jsdom": "^16.2.10",
     "@types/node": "^15.0.1",
     "@types/tough-cookie": "^4.0.0",
+    "@types/tough-cookie-file-store": "^2.0.1",
     "axios": "^0.21.1",
     "axios-cookiejar-support": "^1.0.1",
     "jsdom": "^16.5.3",
     "tough-cookie": "^4.0.0",
+    "tough-cookie-file-store": "^2.0.2",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4",
     "yargs": "^17.0.0"

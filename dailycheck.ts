@@ -5,6 +5,7 @@ import axios, { AxiosResponse } from 'axios';
 import axiosCookieJarSupport from 'axios-cookiejar-support';
 import * as tough from 'tough-cookie';
 import { JSDOM } from 'jsdom';
+import { FileCookieStore } from 'tough-cookie-file-store';
 
 const userAgent = "Mozilla/5.0 Chrome/89.0.4389.90 Mobile Safari/537.36";
 
@@ -34,7 +35,7 @@ function findInputByName(dom: JSDOM, name: string) {
 }
 
 async function login() {
-    const cookieJar = new tough.CookieJar();
+    const cookieJar = new tough.CookieJar(new FileCookieStore("./cookie.txt"));
     const password = fs.readFileSync(__dirname + "/.secret").toString().trim();
     const netid = fs.readFileSync(__dirname + "/.username").toString().trim();
     let ret = await axios.get(`https://dailycheck.cornell.edu/saml_login_user?redirect=%2F`, {
@@ -43,8 +44,11 @@ async function login() {
 
     let dom = new JSDOM(ret.data);
     const _samlReq = dom.window.document.querySelector<HTMLInputElement>("input[name='SAMLRequest']");
-    if (_samlReq === null)
-        throw "unable to get SAMLRequest";
+    if (_samlReq === null) {
+        console.log("(Already logged in.)");
+        return cookieJar;
+    }
+    console.log("(Logging in...)");
     const samlReq = _samlReq.value;
     let relayState = 'https://dailycheck.cornell.edu/saml_login_user?redirect=%2F';
 
@@ -143,12 +147,15 @@ async function main() {
     const yargs = require('yargs/yargs')
     const { hideBin } = require('yargs/helpers')
     const argv = yargs(hideBin(process.argv)).argv
-    if (argv.checkin) {
-        dailyCheck(await login());
-    } else if (argv.status) {
-        console.log(await dailyCheckStatus(await login()));
+    try {
+        if (argv.checkin) {
+            dailyCheck(await login());
+        } else if (argv.status) {
+            console.log(await dailyCheckStatus(await login()));
+        }
+    } catch (e) {
+        console.log(e);
     }
-
 }
 
 if (require.main === module) {
