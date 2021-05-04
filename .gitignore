@@ -2,3 +2,5 @@
 /.username
 /node_modules
 /package-lock.json
+/*.js.map
+/cookie.txt
