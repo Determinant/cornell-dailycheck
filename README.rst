@@ -14,3 +14,10 @@ How to Use
 - ``npm install``
 - ``node dailycheck.js --status`` to see if your're checked-in.
 - ``node dailycheck.js --checkin`` to check in.
+
+FAQ
+---
+
+- I got "unable to find form: bigpost": make sure your ``.username`` and
+  ``.password`` are correct: ``.username`` should contain your NetID only, not
+  your complete email.
