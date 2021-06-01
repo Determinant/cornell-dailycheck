@@ -59,6 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.dailyCheck = exports.dailyCheckStatus = exports.login = void 0;
 var fs = __importStar(require("fs"));
 var axios_1 = __importDefault(require("axios"));
 var axios_cookiejar_support_1 = __importDefault(require("axios-cookiejar-support"));
@@ -86,19 +87,15 @@ function findFormByName(dom, name) {
 function findInputByName(dom, name) {
     return findElemByName(dom, "input", name);
 }
-function login() {
+function login(cookieJar, netid, password) {
     return __awaiter(this, void 0, void 0, function () {
-        var cookieJar, password, netid, ret, dom, _samlReq, samlReq, relayState, loginAction, cont, wa, _cont, samlResp;
+        var ret, dom, _samlReq, samlReq, relayState, loginAction, cont, wa, _cont, samlResp;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    cookieJar = new tough.CookieJar(new tough_cookie_file_store_1.FileCookieStore("./cookie.txt"));
-                    password = fs.readFileSync(__dirname + "/.secret").toString().trim();
-                    netid = fs.readFileSync(__dirname + "/.username").toString().trim();
-                    return [4 /*yield*/, axios_1.default.get("https://dailycheck.cornell.edu/saml_login_user?redirect=%2F", {
-                            jar: cookieJar
-                        })];
+                case 0: return [4 /*yield*/, axios_1.default.get("https://dailycheck.cornell.edu/saml_login_user?redirect=%2F", {
+                        jar: cookieJar
+                    })];
                 case 1:
                     ret = _a.sent();
                     dom = new jsdom_1.JSDOM(ret.data);
@@ -179,23 +176,28 @@ function login() {
         });
     });
 }
+exports.login = login;
 function dailyCheckStatus(cookieJar) {
     return __awaiter(this, void 0, void 0, function () {
-        var ret, dom, isGreen;
+        var ret, dom, statusBanner, isGreen;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, axios_1.default.get('https://dailycheck.cornell.edu/daily-checkin', {
+                case 0: return [4 /*yield*/, axios_1.default.get('https://dailycheck.cornell.edu', {
                         jar: cookieJar
                     })];
                 case 1:
                     ret = _a.sent();
                     dom = new jsdom_1.JSDOM(ret.data);
-                    isGreen = dom.window.document.querySelector(".status_green");
-                    return [2 /*return*/, isGreen ? isGreen.textContent : "Not checked-in. Use `--checkin` to check in."];
+                    statusBanner = dom.window.document.querySelector(".dc-status-banner");
+                    isGreen = false;
+                    if (statusBanner != null)
+                        isGreen = statusBanner.textContent == 'Complete';
+                    return [2 /*return*/, isGreen ? "Checked in." : "Not checked-in. Use `--checkin` to check in."];
             }
         });
     });
 }
+exports.dailyCheckStatus = dailyCheckStatus;
 function dailyCheck(cookieJar) {
     return __awaiter(this, void 0, void 0, function () {
         var ret, dom, _token, token, _1;
@@ -245,21 +247,25 @@ function dailyCheck(cookieJar) {
         });
     });
 }
+exports.dailyCheck = dailyCheck;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var yargs, hideBin, argv, _a, _b, _c, _d, e_1;
+        var yargs, hideBin, argv, cookieJar, password, netid, _a, _b, _c, _d, e_1;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
                     yargs = require('yargs/yargs');
                     hideBin = require('yargs/helpers').hideBin;
                     argv = yargs(hideBin(process.argv)).argv;
+                    cookieJar = new tough.CookieJar(new tough_cookie_file_store_1.FileCookieStore("./cookie.txt"));
+                    password = fs.readFileSync(__dirname + "/.secret").toString().trim();
+                    netid = fs.readFileSync(__dirname + "/.username").toString().trim();
                     _e.label = 1;
                 case 1:
                     _e.trys.push([1, 7, , 8]);
                     if (!argv.checkin) return [3 /*break*/, 3];
                     _a = dailyCheck;
-                    return [4 /*yield*/, login()];
+                    return [4 /*yield*/, login(cookieJar, netid, password)];
                 case 2:
                     _a.apply(void 0, [_e.sent()]);
                     return [3 /*break*/, 6];
@@ -267,7 +273,7 @@ function main() {
                     if (!argv.status) return [3 /*break*/, 6];
                     _c = (_b = console).log;
                     _d = dailyCheckStatus;
-                    return [4 /*yield*/, login()];
+                    return [4 /*yield*/, login(cookieJar, netid, password)];
                 case 4: return [4 /*yield*/, _d.apply(void 0, [_e.sent()])];
                 case 5:
                     _c.apply(_b, [_e.sent()]);
@@ -285,7 +291,4 @@ function main() {
 if (require.main === module) {
     main();
 }
-module.exports = {
-    dailyCheck: dailyCheck
-};
 //# sourceMappingURL=dailycheck.js.map

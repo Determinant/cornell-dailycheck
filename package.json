@@ -9,7 +9,7 @@
     "yargs": "^17.0.0"
   },
   "scripts": {
-    "build": "npx tsc && nexe dailycheck.js --build"
+    "build": "npx tsc"
   },
   "devDependencies": {
     "@types/jsdom": "^16.2.10",

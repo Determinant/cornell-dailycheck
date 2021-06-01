@@ -34,10 +34,7 @@ function findInputByName(dom: JSDOM, name: string) {
     return findElemByName<HTMLInputElement>(dom, "input", name);
 }
 
-async function login() {
-    const cookieJar = new tough.CookieJar(new FileCookieStore("./cookie.txt"));
-    const password = fs.readFileSync(__dirname + "/.secret").toString().trim();
-    const netid = fs.readFileSync(__dirname + "/.username").toString().trim();
+export async function login(cookieJar: tough.CookieJar, netid: string, password: string) {
     let ret = await axios.get(`https://dailycheck.cornell.edu/saml_login_user?redirect=%2F`, {
         jar: cookieJar
     });
@@ -100,16 +97,19 @@ async function login() {
     return cookieJar;
 }
 
-async function dailyCheckStatus(cookieJar: tough.CookieJar) {
-    const ret = await axios.get('https://dailycheck.cornell.edu/daily-checkin', {
+export async function dailyCheckStatus(cookieJar: tough.CookieJar) {
+    const ret = await axios.get('https://dailycheck.cornell.edu', {
         jar: cookieJar
     });
     const dom = new JSDOM(ret.data);
-    const isGreen = dom.window.document.querySelector(".status_green");
-    return isGreen ? isGreen.textContent : "Not checked-in. Use `--checkin` to check in.";
+    const statusBanner = dom.window.document.querySelector(".dc-status-banner");
+    let isGreen = false;
+    if (statusBanner != null)
+        isGreen = statusBanner.textContent == 'Complete';
+    return isGreen ? "Checked in." : "Not checked-in. Use `--checkin` to check in.";
 }
 
-async function dailyCheck(cookieJar: tough.CookieJar) {
+export async function dailyCheck(cookieJar: tough.CookieJar) {
     const ret = await axios.get('https://dailycheck.cornell.edu/daily-checkin', {
         jar: cookieJar
     }).catch(_ => null);
@@ -147,11 +147,16 @@ async function main() {
     const yargs = require('yargs/yargs')
     const { hideBin } = require('yargs/helpers')
     const argv = yargs(hideBin(process.argv)).argv
+
+    const cookieJar = new tough.CookieJar(new FileCookieStore("./cookie.txt"));
+    const password = fs.readFileSync(__dirname + "/.secret").toString().trim();
+    const netid = fs.readFileSync(__dirname + "/.username").toString().trim();
+
     try {
         if (argv.checkin) {
-            dailyCheck(await login());
+            dailyCheck(await login(cookieJar, netid, password));
         } else if (argv.status) {
-            console.log(await dailyCheckStatus(await login()));
+            console.log(await dailyCheckStatus(await login(cookieJar, netid, password)));
         }
     } catch (e) {
         console.log(e);
@@ -160,8 +165,4 @@ async function main() {
 
 if (require.main === module) {
     main();
-}
-
-module.exports = {
-    dailyCheck
 }
