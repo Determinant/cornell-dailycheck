@@ -9,6 +9,10 @@ the form. Use at your own discretion.
 How to Use
 ----------
 
+- Make sure you have node.js installed (``node`` and ``npm`` command should
+  exist). If you don't have it, see
+  https://nodejs.org/en/download/package-manager/.
+
 - Put your NetID in ``.username``.
 - Put your password in ``.secret``.
 - ``npm install``
